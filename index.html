@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Horario — Demo</title>
+<style>
+body{font-family:system-ui,Arial,sans-serif;max-width:600px;margin:24px auto;padding:0 16px;color:#222}
+h1{font-size:24px;margin-bottom:2px} .sub{color:#555;margin-top:0}
+.next{border:2px solid #0b6efd;border-radius:12px;padding:14px;margin:14px 0;background:#eef4ff}
+.card{border:1px solid #ddd;border-radius:12px;padding:14px;margin:10px 0}
+.card.libre{color:#888;background:#f7f7f7}
+button{padding:8px 12px;border:1px solid #ccc;border-radius:20px;background:#fff;font-size:15px;cursor:pointer;margin:2px}
+button.active{background:#0b6efd;color:#fff;border-color:#0b6efd}
+button.swap{border-radius:8px;margin-top:8px}
+button.swap.done{background:#e6f4ea;border-color:#34a853;color:#137333}
+.small{color:#555;font-size:13px}
+</style>
+</head>
+<body>
+<h1>📅 Mi Horario</h1>
+<p class="sub">Demo con turnos de ejemplo. No está conectada a ningún sistema real.</p>
+
+<div class="next" id="nextShift"></div>
+
+<p>
+<button data-day="Todos" class="active">Todos</button>
+<button data-day="Lunes">Lun</button>
+<button data-day="Martes">Mar</button>
+<button data-day="Miércoles">Mié</button>
+<button data-day="Jueves">Jue</button>
+<button data-day="Viernes">Vie</button>
+<button data-day="Sábado">Sáb</button>
+<button data-day="Domingo">Dom</button>
+</p>
+
+<div id="list"></div>
+<p class="small">“Pedir cambio” es solo una demo: no envía nada a nadie.</p>
+
+<script>
+const shifts=[
+  {day:"Lunes", time:"7:00 a.m. – 3:30 p.m.", site:"Planta Norte", role:"Instalación"},
+  {day:"Martes", time:"7:00 a.m. – 3:30 p.m.", site:"Edificio A", role:"Mantenimiento"},
+  {day:"Miércoles", time:"9:00 a.m. – 5:30 p.m.", site:"Planta Sur", role:"Instalación"},
+  {day:"Jueves", time:"7:00 a.m. – 3:30 p.m.", site:"Planta Norte", role:"Revisión de paneles"},
+  {day:"Viernes", time:"7:00 a.m. – 1:00 p.m.", site:"Edificio B", role:"Mantenimiento"},
+];
+const days=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const requested=new Set();
+let filter="Todos";
+const listEl=document.getElementById("list");
+const nextEl=document.getElementById("nextShift");
+
+const first=shifts[0];
+nextEl.innerHTML="<strong>Próximo turno</strong><br>"+first.day+" · "+first.time+"<br>"+first.role+" · "+first.site;
+
+function render(){
+  listEl.innerHTML="";
+  days.forEach(d=>{
+    if(filter!=="Todos" && filter!==d) return;
+    const s=shifts.find(x=>x.day===d);
+    if(!s){
+      listEl.innerHTML+='<div class="card libre"><strong>'+d+'</strong> · Libre</div>';
+      return;
+    }
+    const isReq=requested.has(s.day);
+    listEl.innerHTML+='<div class="card"><strong>'+s.day+'</strong> · '+s.time+'<br>'+s.role+' · '+s.site+'<br>'
+      +'<button class="swap '+(isReq?"done":"")+'" data-swap="'+s.day+'">'+(isReq?"✓ Cambio solicitado":"Pedir cambio")+'</button></div>';
+  });
+  document.querySelectorAll("[data-swap]").forEach(b=>{
+    b.onclick=()=>{
+      const d=b.getAttribute("data-swap");
+      if(requested.has(d)) requested.delete(d); else requested.add(d);
+      render();
+    };
+  });
+}
+
+document.querySelectorAll("[data-day]").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("[data-day]").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    filter=b.getAttribute("data-day");
+    render();
+  };
+});
+
+render();
+</script>
+</body>
+</html>
